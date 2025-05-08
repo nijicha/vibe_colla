@@ -4,3 +4,16 @@ pnpm-lock.yaml
 yarn.lock
 bun.lock
 bun.lockb
+
+README.md
+package.json
+eslint.config.js
+drizzle.config.ts
+playwright.config.ts
+svelte.config.js
+tsconfig.json
+
+# Vite + vitest
+vite.config.ts
+vitest-setup-client.ts
+vitest.shims.d.ts

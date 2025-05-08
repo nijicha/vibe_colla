@@ -3,11 +3,11 @@ services:
     image: postgres
     restart: always
     ports:
-      - 5432:5432
-    environment: 
-      POSTGRES_USER: root
+      - "5555:5432"
+    environment:
+      POSTGRES_USER: freehoot
       POSTGRES_PASSWORD: mysecretpassword
-      POSTGRES_DB: local
+      POSTGRES_DB: freehoot_development
     volumes:
       - pgdata:/var/lib/postgresql/data
 volumes:
