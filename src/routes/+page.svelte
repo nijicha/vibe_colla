@@ -18,8 +18,22 @@
 
 		const position = canvasService.getMousePosition(event);
 		if (position) {
-			clientSocketService.sendCursorPosition(position);
+			clientSocketService.sendCursorPosition({
+				...position,
+				active: true, // Add active state when cursor is in window
+			});
 		}
+	}
+
+	function handleMouseLeave() {
+		if (!myId) return;
+
+		// Notify server that cursor is no longer active in window
+		clientSocketService.sendCursorPosition({
+			active: false,
+			x: 0, // Send last known position or zeros
+			y: 0,
+		});
 	}
 
 	function handleResize() {
@@ -86,11 +100,13 @@
 				class="absolute z-20 transition-all duration-50 ease-linear"
 				style="left: {cursor.x}px; top: {cursor.y}px; transform: translate(-50%, -50%);"
 			>
-				<span
-					class="bg-opacity-70 absolute top-full left-1/2 mt-1 -translate-x-1/2 rounded px-2 py-0.5 text-xs whitespace-nowrap shadow-md"
-				>
-					{cursor.name}
-				</span>
+				{#if cursor.active !== false}
+					<span
+						class="bg-opacity-70 absolute top-full left-1/2 mt-1 -translate-x-1/2 rounded px-2 py-0.5 text-xs whitespace-nowrap shadow-md"
+					>
+						{cursor.name}
+					</span>
+				{/if}
 			</div>
 		{/if}
 	{/each}
@@ -100,5 +116,6 @@
 		id="dotCanvas"
 		class="absolute inset-0 h-full w-full"
 		on:mousemove={handleMouseMove}
+		on:mouseleave={handleMouseLeave}
 	></canvas>
 </div>

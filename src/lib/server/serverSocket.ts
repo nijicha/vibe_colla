@@ -1,13 +1,15 @@
 import { createServer } from "http";
 import { Server, Socket } from "socket.io";
 import { UserManager } from "$lib/services/userManager";
+import type { Active } from "$lib/types";
 
 export class ServerSocket {
 	private io: Server;
 	private httpServer = createServer();
 	private userManager: UserManager;
+	private static instance: ServerSocket | null = null;
 
-	constructor(port: number = 8686) {
+	private constructor(port: number) {
 		this.io = new Server(this.httpServer, {
 			cors: {
 				origin: "*",
@@ -22,6 +24,14 @@ export class ServerSocket {
 		});
 
 		this.setupSocketHandlers();
+	}
+
+	public static getInstance(): ServerSocket {
+		if (!ServerSocket.instance) {
+			const port = Number(process.env.PORT) || 8686;
+			ServerSocket.instance = new ServerSocket(port);
+		}
+		return ServerSocket.instance;
 	}
 
 	private setupSocketHandlers() {
@@ -42,8 +52,8 @@ export class ServerSocket {
 			this.broadcastCursors();
 
 			// Handle cursor movement
-			socket.on("cursorMove", (data: { x: number; y: number }) => {
-				this.userManager.updateUserPosition(socket.id, data.x, data.y);
+			socket.on("cursorMove", (data: { x: number; y: number; active?: Active }) => {
+				this.userManager.updateUserPosition(socket.id, data.x, data.y, data.active);
 				this.broadcastCursors();
 			});
 
@@ -61,7 +71,10 @@ export class ServerSocket {
 	}
 
 	close() {
-		this.io.close();
-		this.httpServer.close();
+		if (ServerSocket.instance) {
+			this.io.close();
+			this.httpServer.close();
+			ServerSocket.instance = null;
+		}
 	}
 }

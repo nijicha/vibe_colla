@@ -1,3 +1,5 @@
+import type { Active, User } from "$lib/types";
+
 const animalNames = [
 	"Lion",
 	"Tiger",
@@ -43,13 +45,6 @@ const cursorColors = [
 	"#4A148C", // Royal Purple
 ];
 
-export interface User {
-	name: string;
-	x: number;
-	y: number;
-	color: string;
-}
-
 export class UserManager {
 	private users: Record<string, User> = {};
 	private usedNames = new Set<string>();
@@ -59,16 +54,17 @@ export class UserManager {
 		const name = this.getUniqueRandomName();
 		const color = this.getNextColor();
 
-		const user: User = { name, x: 0, y: 0, color };
+		const user: User = { name, x: 0, y: 0, color, active: false };
 		this.users[userId] = user;
 
 		return user;
 	}
 
-	updateUserPosition(userId: string, x: number, y: number): void {
+	updateUserPosition(userId: string, x: number, y: number, active: Active): void {
 		if (this.users[userId]) {
 			this.users[userId].x = x;
 			this.users[userId].y = y;
+			this.users[userId].active = active;
 		}
 	}
 
