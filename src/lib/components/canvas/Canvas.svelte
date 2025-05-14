@@ -78,7 +78,7 @@
 </script>
 
 <div
-	class="relative h-screen w-full overflow-hidden"
+	class="relative h-screen w-full overflow-hidden bg-white dark:bg-black"
 	aria-label="Interactive panel for cursor tracking"
 >
 	{#if myName !== "Assigning..."}
