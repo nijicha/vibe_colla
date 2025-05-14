@@ -66,6 +66,10 @@ export class ServerSocket {
 		});
 
 		this.io.engine.on("connection_error", (err) => {
+			if (!process.env.PUBLIC_TROUBLESHOOT) {
+				return;
+			}
+
 			console.log(err.req); // the request object
 			console.log(err.code); // the error code, for example 1
 			console.log(err.message); // the error message, for example "Session ID unknown"

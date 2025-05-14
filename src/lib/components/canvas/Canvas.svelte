@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount, onDestroy } from "svelte";
 	import { page } from "$app/state";
-	import { PUBLIC_SOCKET_PORT } from "$env/static/public";
+	import { PUBLIC_SOCKET_PORT, PUBLIC_TROUBLESHOOT } from "$env/static/public";
 
 	import { clientSocketService } from "$lib/services/clientSocketService";
 	import { canvasService } from "$lib/services/canvasService";
@@ -69,6 +69,10 @@
 		});
 
 		clientSocketService.onConnectError((err) => {
+			if (!PUBLIC_TROUBLESHOOT) {
+				return;
+			}
+
 			// the reason of the error, for example "xhr poll error"
 			console.log(err.message);
 
