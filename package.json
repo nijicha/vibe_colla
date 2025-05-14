@@ -65,7 +65,11 @@
 		"vitest": "^3.0.0"
 	},
 	"dependencies": {
+		"bufferutil": "^4.0.9",
 		"drizzle-orm": "^0.43.1",
-		"postgres": "^3.4.5"
+		"postgres": "^3.4.5",
+		"socket.io": "^4.8.1",
+		"socket.io-client": "^4.8.1",
+		"utf-8-validate": "^6.0.5"
 	}
 }
