@@ -5,9 +5,9 @@ services:
     ports:
       - "5555:5432"
     environment:
-      POSTGRES_USER: freehoot
+      POSTGRES_USER: vibe_colla
       POSTGRES_PASSWORD: mysecretpassword
-      POSTGRES_DB: freehoot_development
+      POSTGRES_DB: vibe_colla_development
     volumes:
       - pgdata:/var/lib/postgresql/data
 volumes:
