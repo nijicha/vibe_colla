@@ -28,7 +28,7 @@ export class ServerSocket {
 
 	public static getInstance(): ServerSocket {
 		if (!ServerSocket.instance) {
-			const port = Number(process.env.PORT) || 8686;
+			const port = Number(process.env.PUBLIC_SOCKET_PORT) || 8686;
 			ServerSocket.instance = new ServerSocket(port);
 		}
 		return ServerSocket.instance;
