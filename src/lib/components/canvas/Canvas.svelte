@@ -68,6 +68,20 @@
 			myId = clientSocketService.getUserId();
 		});
 
+		clientSocketService.onConnectError((err) => {
+			// the reason of the error, for example "xhr poll error"
+			console.log(err.message);
+
+			// if additional properties exist on the error object, you can access them
+			if ("description" in err) {
+				console.log(err.description);
+			}
+
+			if ("context" in err) {
+				console.log(err.context);
+			}
+		});
+
 		clientSocketService.onAssignedDetails(handleAssignedDetails);
 		clientSocketService.onUpdateCursors(updateCursors);
 

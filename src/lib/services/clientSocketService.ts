@@ -25,6 +25,10 @@ export class ClientSocketService {
 		this.socket?.on("connect", callback);
 	}
 
+	onConnectError(callback: (err: Error) => void) {
+		this.socket?.on("connect_error", callback);
+	}
+
 	onAssignedDetails(callback: (details: UserDetails) => void) {
 		this.socket?.on("assignedDetails", (details) => {
 			this.userDetails = details;
