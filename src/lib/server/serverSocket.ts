@@ -1,4 +1,4 @@
-import { createServer } from "http";
+import { createServer } from "node:http";
 import { Server, Socket } from "socket.io";
 import { UserManager } from "$lib/services/userManager";
 import type { Active } from "$lib/types";
