@@ -10,27 +10,67 @@
 		color: string; // Add a color property for visual distinction
 	}
 
+	// Users collaborative variables
 	let socket: Socket;
-	let panelEl: HTMLElement; // The interactive panel
 	let myName: string = "Assigning...";
 	let myId: string | null = null;
 	let myColor: string = "#000000"; // Default color, will be assigned by server
-
 	let cursors: Record<string, Cursor> = {};
+
+	// Canvas-related variables
+	let canvas: HTMLCanvasElement;
+	let ctx: CanvasRenderingContext2D | null;
+
+	function drawDotGrid() {
+		if (!ctx) return;
+
+		const dotSize = 2;
+		const dotSpacing = 24;
+
+		ctx.fillStyle = "rgba(153, 153, 153, 0.3)";
+		const cols = Math.ceil(canvas.width / dotSpacing);
+		const rows = Math.ceil(canvas.height / dotSpacing);
+
+		for (let i = 0; i < rows; i++) {
+			for (let j = 0; j < cols; j++) {
+				const x = j * dotSpacing;
+				const y = i * dotSpacing;
+
+				if ("beginPath" in ctx) {
+					ctx.beginPath();
+				}
+
+				if ("arc" in ctx) {
+					ctx.arc(x, y, dotSize, 0, Math.PI * 2);
+				}
+
+				ctx.fill();
+			}
+		}
+	}
+
+	function resizeCanvas() {
+		if (!canvas) return;
+		canvas.width = window.innerWidth;
+		canvas.height = window.innerHeight;
+		drawDotGrid();
+	}
 
 	onMount(() => {
 		// Connect to the Socket.IO server
 		socket = io("http://localhost:8686");
 
-		// Get the panel element reference
-		const panel = panelEl;
-		if (!panel) return;
+		// Canvas initialization
+		if (canvas) {
+			ctx = canvas.getContext("2d");
+			resizeCanvas();
+			window.addEventListener("resize", resizeCanvas);
+		}
 
 		// --- Socket Event Listeners ---
 
 		// When connection is established and server assigns details
 		socket.on("connect", () => {
-			console.log("Connected to server with ID:", socket.id);
 			myId = socket.id || "unknown"; // Store my own ID
 		});
 
@@ -38,7 +78,6 @@
 			myName = details.name;
 			myId = details.id;
 			myColor = details.color;
-			console.log(`Assigned name: ${myName}, ID: ${myId}, Color: ${myColor}`);
 		});
 
 		// Receive updates for all cursors
@@ -50,11 +89,11 @@
 			cursors = updatedCursors;
 		});
 
-		// Handle mouse movement on the panel
+		// Handle mouse movement on the canvas
 		const handleMouseMove = (event: MouseEvent) => {
 			if (!myId) return; // Don't send if not yet fully connected/identified
 
-			const rect = panel.getBoundingClientRect();
+			const rect = canvas.getBoundingClientRect();
 			const x = event.clientX - rect.left;
 			const y = event.clientY - rect.top;
 
@@ -62,11 +101,12 @@
 			socket.emit("cursorMove", { x, y });
 		};
 
-		panel.addEventListener("mousemove", handleMouseMove);
+		canvas.addEventListener("mousemove", handleMouseMove);
 
 		// --- Cleanup on component destroy ---
 		return () => {
-			panel.removeEventListener("mousemove", handleMouseMove);
+			canvas.removeEventListener("mousemove", handleMouseMove);
+			window.removeEventListener("resize", resizeCanvas);
 			if (socket) {
 				socket.disconnect();
 			}
@@ -84,13 +124,9 @@
 	<title>Real-time Cursors</title>
 </svelte:head>
 
-<div
-	bind:this={panelEl}
-	class="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800 p-4 font-sans text-white"
-	aria-label="Interactive panel for cursor tracking"
->
+<div class="relative h-screen w-full" aria-label="Interactive panel for cursor tracking">
 	{#if myName !== "Assigning..."}
-		<span class="text-md absolute top-4 right-4">
+		<span class="text-md absolute top-4 right-4 z-10">
 			You are:
 			<span
 				class="rounded-full px-3 py-2 font-semibold"
@@ -104,8 +140,8 @@
 	{#each Object.values(cursors) as cursor (cursor.id)}
 		{#if cursor.id !== myId}
 			<div
-				class="absolute transition-all duration-50 ease-linear"
-				style="left: {cursor.x}px; top: {cursor.y}px; transform: translate(-50%, -50%); z-index: 10;"
+				class="absolute z-20 transition-all duration-50 ease-linear"
+				style="left: {cursor.x}px; top: {cursor.y}px; transform: translate(-50%, -50%);"
 			>
 				<span
 					class="bg-opacity-70 absolute top-full left-1/2 mt-1 -translate-x-1/2 rounded px-2 py-0.5 text-xs whitespace-nowrap shadow-md"
@@ -115,4 +151,6 @@
 			</div>
 		{/if}
 	{/each}
+
+	<canvas bind:this={canvas} id="dotCanvas" class="absolute inset-0 h-full w-full"></canvas>
 </div>
