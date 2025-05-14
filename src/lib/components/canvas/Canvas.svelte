@@ -1,5 +1,8 @@
 <script lang="ts">
 	import { onMount, onDestroy } from "svelte";
+	import { page } from "$app/state";
+	import { SOCKET_PORT } from "$env/static/private";
+
 	import { clientSocketService } from "$lib/services/clientSocketService";
 	import { canvasService } from "$lib/services/canvasService";
 	import type { CursorsMap, UserDetails } from "$lib/types";
@@ -56,7 +59,9 @@
 		window.addEventListener("resize", handleResize);
 
 		// Connect to socket server
-		clientSocketService.connect("http://localhost:8686");
+		const socketPort = SOCKET_PORT || "8686";
+		const socketUrl = `${page.url.hostname}:${socketPort}`;
+		clientSocketService.connect(socketUrl);
 
 		// Setup socket event handlers
 		clientSocketService.onConnect(() => {
@@ -85,7 +90,7 @@
 		<span class="absolute top-4 right-4 z-10">
 			<span
 				role="button"
-				tabindex="1"
+				tabindex="0"
 				class="inline-flex aspect-square h-8 w-8 items-center justify-center rounded-full font-semibold text-white shadow-2xs ring-2 hover:ring-amber-400"
 				style="background-color: {myColor}"
 			>
@@ -102,7 +107,7 @@
 			>
 				{#if cursor.active !== false}
 					<span
-						class="bg-opacity-70 absolute top-full left-1/2 mt-1 -translate-x-1/2 rounded px-2 py-0.5 text-xs whitespace-nowrap shadow-md"
+						class="bg-opacity-70 absolute top-full left-1/2 mt-1 -translate-x-1/2 rounded bg-white px-2 py-0.5 text-xs whitespace-nowrap text-black shadow-md dark:bg-white dark:text-black"
 					>
 						{cursor.name}
 					</span>

@@ -20,7 +20,7 @@ export class ServerSocket {
 		this.userManager = new UserManager();
 
 		this.httpServer.listen(port, () => {
-			console.log(`Socket.IO server running on http://localhost:${port}`);
+			console.log(`Socket.IO server running on ${port}`);
 		});
 
 		this.setupSocketHandlers();
