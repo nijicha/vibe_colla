@@ -1,9 +1,13 @@
 <script lang="ts">
-	let { data } = $props();
+	let m = $state({ x: 0, y: 0 });
 
-	const { users } = data;
+	function handleMousemove(event) {
+		m.x = event.clientX;
+		m.y = event.clientY;
+	}
 </script>
 
-{#each users as user}
-	<p>{user.name}</p>
-{/each}
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div class="h-full w-full" onmousemove={handleMousemove}>
+	The mouse position is {m.x} x {m.y}
+</div>
