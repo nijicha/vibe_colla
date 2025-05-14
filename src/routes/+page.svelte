@@ -1,122 +1,65 @@
 <script lang="ts">
 	import { onMount, onDestroy } from "svelte";
-	import { io, Socket } from "socket.io-client";
+	import { clientSocketService } from "$lib/services/clientSocketService";
+	import { canvasService } from "$lib/services/canvasService";
+	import type { CursorsMap, UserDetails } from "$lib/types";
 
-	interface Cursor {
-		id: string;
-		x: number;
-		y: number;
-		name: string;
-		color: string; // Add a color property for visual distinction
-	}
-
-	// Users collaborative variables
-	let socket: Socket;
+	// User state
 	let myName: string = "Assigning...";
 	let myId: string | null = null;
-	let myColor: string = "#000000"; // Default color, will be assigned by server
-	let cursors: Record<string, Cursor> = {};
+	let myColor: string = "#000000"; // Default color
+	let cursors: CursorsMap = {};
 
-	// Canvas-related variables
+	// Canvas reference
 	let canvas: HTMLCanvasElement;
-	let ctx: CanvasRenderingContext2D | null;
 
-	function drawDotGrid() {
-		if (!ctx) return;
+	function handleMouseMove(event: MouseEvent) {
+		if (!myId) return;
 
-		const dotSize = 2;
-		const dotSpacing = 24;
-
-		ctx.fillStyle = "rgba(153, 153, 153, 0.3)";
-		const cols = Math.ceil(canvas.width / dotSpacing);
-		const rows = Math.ceil(canvas.height / dotSpacing);
-
-		for (let i = 0; i < rows; i++) {
-			for (let j = 0; j < cols; j++) {
-				const x = j * dotSpacing;
-				const y = i * dotSpacing;
-
-				if ("beginPath" in ctx) {
-					ctx.beginPath();
-				}
-
-				if ("arc" in ctx) {
-					ctx.arc(x, y, dotSize, 0, Math.PI * 2);
-				}
-
-				ctx.fill();
-			}
+		const position = canvasService.getMousePosition(event);
+		if (position) {
+			clientSocketService.sendCursorPosition(position);
 		}
 	}
 
-	function resizeCanvas() {
-		if (!canvas) return;
-		canvas.width = window.innerWidth;
-		canvas.height = window.innerHeight;
-		drawDotGrid();
+	function handleResize() {
+		canvasService.resize();
+	}
+
+	function handleAssignedDetails(details: UserDetails) {
+		myName = details.name;
+		myId = details.id;
+		myColor = details.color;
+	}
+
+	function updateCursors(updatedCursors: CursorsMap) {
+		cursors = updatedCursors;
 	}
 
 	onMount(() => {
-		// Connect to the Socket.IO server
-		socket = io("http://localhost:8686");
+		// Initialize canvas
+		canvasService.initialize(canvas);
+		window.addEventListener("resize", handleResize);
 
-		// Canvas initialization
-		if (canvas) {
-			ctx = canvas.getContext("2d");
-			resizeCanvas();
-			window.addEventListener("resize", resizeCanvas);
-		}
+		// Connect to socket server
+		clientSocketService.connect("http://localhost:8686");
 
-		// --- Socket Event Listeners ---
-
-		// When connection is established and server assigns details
-		socket.on("connect", () => {
-			myId = socket.id || "unknown"; // Store my own ID
+		// Setup socket event handlers
+		clientSocketService.onConnect(() => {
+			myId = clientSocketService.getUserId();
 		});
 
-		socket.on("assignedDetails", (details: { id: string; name: string; color: string }) => {
-			myName = details.name;
-			myId = details.id;
-			myColor = details.color;
-		});
+		clientSocketService.onAssignedDetails(handleAssignedDetails);
+		clientSocketService.onUpdateCursors(updateCursors);
 
-		// Receive updates for all cursors
-		socket.on("updateCursors", (serverCursors: Record<string, Omit<Cursor, "id">>) => {
-			const updatedCursors: Record<string, Cursor> = {};
-			for (const id in serverCursors) {
-				updatedCursors[id] = { ...serverCursors[id], id };
-			}
-			cursors = updatedCursors;
-		});
-
-		// Handle mouse movement on the canvas
-		const handleMouseMove = (event: MouseEvent) => {
-			if (!myId) return; // Don't send if not yet fully connected/identified
-
-			const rect = canvas.getBoundingClientRect();
-			const x = event.clientX - rect.left;
-			const y = event.clientY - rect.top;
-
-			// Emit cursor position to the server
-			socket.emit("cursorMove", { x, y });
-		};
-
-		canvas.addEventListener("mousemove", handleMouseMove);
-
-		// --- Cleanup on component destroy ---
+		// Clean up on component destroy
 		return () => {
-			canvas.removeEventListener("mousemove", handleMouseMove);
-			window.removeEventListener("resize", resizeCanvas);
-			if (socket) {
-				socket.disconnect();
-			}
+			window.removeEventListener("resize", handleResize);
 		};
 	});
 
 	onDestroy(() => {
-		if (socket) {
-			socket.disconnect();
-		}
+		clientSocketService.disconnect();
 	});
 </script>
 
@@ -152,5 +95,10 @@
 		{/if}
 	{/each}
 
-	<canvas bind:this={canvas} id="dotCanvas" class="absolute inset-0 h-full w-full"></canvas>
+	<canvas
+		bind:this={canvas}
+		id="dotCanvas"
+		class="absolute inset-0 h-full w-full"
+		on:mousemove={handleMouseMove}
+	></canvas>
 </div>
