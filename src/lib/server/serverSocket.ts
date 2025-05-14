@@ -66,7 +66,7 @@ export class ServerSocket {
 		});
 
 		this.io.engine.on("connection_error", (err) => {
-			if (!process.env.PUBLIC_TROUBLESHOOT) {
+			if (process.env.PUBLIC_TROUBLESHOOT !== "true") {
 				return;
 			}
 

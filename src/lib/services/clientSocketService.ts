@@ -6,7 +6,7 @@ export class ClientSocketService {
 	private userDetails: UserDetails | null = null;
 
 	connect(url: string): Socket {
-		this.socket = io(url);
+		this.socket = io(url, { transports: ["websocket"] });
 		return this.socket;
 	}
 

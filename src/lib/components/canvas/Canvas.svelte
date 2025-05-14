@@ -60,7 +60,7 @@
 
 		// Connect to socket server
 		const socketPort = PUBLIC_SOCKET_PORT || "8686";
-		const socketUrl = `${page.url.hostname}:${socketPort}`;
+		const socketUrl = `ws://${page.url.hostname}:${socketPort}`;
 		clientSocketService.connect(socketUrl);
 
 		// Setup socket event handlers
@@ -69,7 +69,7 @@
 		});
 
 		clientSocketService.onConnectError((err) => {
-			if (!PUBLIC_TROUBLESHOOT) {
+			if (PUBLIC_TROUBLESHOOT !== "true") {
 				return;
 			}
 
