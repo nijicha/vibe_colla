@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount, onDestroy } from "svelte";
 	import { page } from "$app/state";
-	import { SOCKET_PORT } from "$env/static/private";
+	import { PUBLIC_SOCKET_PORT } from "$env/static/public";
 
 	import { clientSocketService } from "$lib/services/clientSocketService";
 	import { canvasService } from "$lib/services/canvasService";
@@ -59,7 +59,7 @@
 		window.addEventListener("resize", handleResize);
 
 		// Connect to socket server
-		const socketPort = SOCKET_PORT || "8686";
+		const socketPort = PUBLIC_SOCKET_PORT || "8686";
 		const socketUrl = `${page.url.hostname}:${socketPort}`;
 		clientSocketService.connect(socketUrl);
 
