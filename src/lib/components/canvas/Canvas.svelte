@@ -60,7 +60,8 @@
 
 		// Connect to socket server
 		const socketPort = PUBLIC_SOCKET_PORT || "8686";
-		const socketUrl = `ws://${page.url.hostname}:${socketPort}`;
+		const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+		const socketUrl = `${protocol}://${page.url.hostname}:${socketPort}`;
 		clientSocketService.connect(socketUrl);
 
 		// Setup socket event handlers
